@@ -1,0 +1,40 @@
+# dependencies
+node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# project-specific (dados core; vão pro Supabase, não pro git)
+personas_rows.csv
+personas_rows.sql
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
