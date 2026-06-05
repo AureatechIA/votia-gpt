@@ -1,0 +1,24 @@
+services:
+  media-ingest:
+    build: .
+    image: votia-media-ingest:latest
+    container_name: votia-media-ingest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY}
+      - YT_COOKIES_FILE=/cookies/cookies.txt
+      - IG_SESSION_USERNAME=${IG_SESSION_USERNAME}
+      - IG_COOKIES_FILE=/cookies/ig-cookies.txt
+    volumes:
+      # Cookies do YouTube (não usado por padrão pq YT exige PO Token)
+      - ./cookies:/cookies
+      # Sessão do Instagram (gerada via `instaloader -l USERNAME` dentro do container)
+      - ./instaloader-sessions:/root/.config/instaloader
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
