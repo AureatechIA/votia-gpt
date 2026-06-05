@@ -1,9 +1,29 @@
 export type AnalysisStatus =
   | "pending"
+  | "uploading"
+  | "ingesting"
   | "transcribing"
   | "analyzing"
   | "done"
   | "error";
+
+export type InputType =
+  | "video"
+  | "audio"
+  | "image"
+  | "text"
+  | "url_youtube"
+  | "url_instagram"
+  | "url_x"
+  | "url_generic";
+
+export type InputMeta = {
+  url?: string;
+  filename?: string;
+  contentType?: string;
+  imagePath?: string;
+  source?: string;
+};
 
 export type ReacaoRegiao = {
   regiao: string;
@@ -38,6 +58,11 @@ export type AnalysisLog = {
 
 export type Analysis = {
   id: string;
+  conversation_id: string | null;
+  turn_index: number | null;
+  input_type: InputType | null;
+  input_meta: InputMeta | null;
+  user_message: string | null;
   storage_path: string | null;
   user_context: string | null;
   status: AnalysisStatus;
@@ -49,4 +74,26 @@ export type Analysis = {
   cost_estimate_cents: number | null;
   created_at: string;
   completed_at: string | null;
+};
+
+export type Conversation = {
+  id: string;
+  title: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  conversation_id: string;
+  turn_index: number;
+  input_type: InputType | null;
+  input_meta: InputMeta | null;
+  user_message: string | null;
+  user_context: string | null;
+  status: AnalysisStatus;
+  error_message: string | null;
+  transcript: string | null;
+  result: AnalysisResult | null;
+  created_at: string;
 };

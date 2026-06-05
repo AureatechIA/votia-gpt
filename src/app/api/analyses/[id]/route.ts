@@ -12,7 +12,7 @@ export async function GET(
   const { data, error } = await sb
     .from("analyses")
     .select(
-      "id, status, error_message, transcript, result, created_at, completed_at, duration_ms"
+      "id, conversation_id, turn_index, input_type, input_meta, user_message, user_context, status, error_message, transcript, result, created_at, completed_at, duration_ms"
     )
     .eq("id", id)
     .single();
