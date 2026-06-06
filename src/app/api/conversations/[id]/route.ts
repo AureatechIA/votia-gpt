@@ -12,7 +12,7 @@ export async function GET(
 
   const { data: conversation, error: convErr } = await sb
     .from("conversations")
-    .select("id, title, created_at, updated_at")
+    .select("id, title, user_id, created_at, updated_at")
     .eq("id", id)
     .single();
 
@@ -58,7 +58,7 @@ export async function PATCH(
     .from("conversations")
     .update({ title, updated_at: new Date().toISOString() })
     .eq("id", id)
-    .select("id, title, created_at, updated_at")
+    .select("id, title, user_id, created_at, updated_at")
     .single();
 
   if (error || !data) {

@@ -4,24 +4,48 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ChatInput, type SubmitPayload } from "@/components/ChatInput";
 import { ChatTurn } from "@/components/ChatTurn";
-import type { ChatMessage, Conversation } from "@/lib/types";
+import { AuthButton } from "@/components/AuthButton";
+import type { ChatMessage, Conversation, User } from "@/lib/types";
 import {
   createConversation,
   createMessage,
   getAnalysis,
   getConversation,
+  getStoredUser,
   patchConversation,
+  storeUser,
   triggerAnalyze,
   uploadToSignedUrl,
 } from "@/lib/client";
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [sidebarKey, setSidebarKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+  useEffect(() => {
+    setUser(getStoredUser());
+  }, []);
+
+  function handleLogin(u: User) {
+    storeUser(u);
+    setUser(u);
+    setConversation(null);
+    setMessages([]);
+    setSidebarKey((k) => k + 1);
+  }
+
+  function handleLogout() {
+    storeUser(null);
+    setUser(null);
+    setConversation(null);
+    setMessages([]);
+    setSidebarKey((k) => k + 1);
+  }
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -199,15 +223,22 @@ export default function Home() {
       />
 
       <main className="flex flex-1 flex-col">
-        <header className="border-b border-gray-200 px-6 py-3">
-          <h2 className="text-sm font-medium text-gray-900">
-            {conversation?.title ?? "Nova análise"}
-          </h2>
-          {conversation && (
-            <p className="text-[10px] uppercase tracking-widest text-gray-400">
-              {messages.length} turno{messages.length === 1 ? "" : "s"}
-            </p>
-          )}
+        <header className="flex items-center justify-between border-b border-gray-200 px-6 py-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-sm font-medium text-gray-900">
+              {conversation?.title ?? "Nova análise"}
+            </h2>
+            {conversation && (
+              <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                {messages.length} turno{messages.length === 1 ? "" : "s"}
+              </p>
+            )}
+          </div>
+          <AuthButton
+            user={user}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+          />
         </header>
 
         <div
@@ -225,6 +256,11 @@ export default function Home() {
                   ou texto bruto. Você pode iterar — diga &ldquo;e se eu trocar
                   X por Y?&rdquo; e a análise refaz com o contexto.
                 </p>
+                {!user && (
+                  <p className="mt-4 max-w-md text-xs text-gray-400">
+                    Faça login no canto superior direito pra salvar o histórico das suas análises.
+                  </p>
+                )}
               </div>
             ) : (
               messages.map((m) => <ChatTurn key={m.id} message={m} />)

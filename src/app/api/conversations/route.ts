@@ -3,11 +3,16 @@ import { supabaseServer } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const userId = req.headers.get("x-user-id");
+  if (!userId) {
+    return NextResponse.json({ conversations: [] });
+  }
   const sb = supabaseServer();
   const { data, error } = await sb
     .from("conversations")
-    .select("id, title, created_at, updated_at")
+    .select("id, title, user_id, created_at, updated_at")
+    .eq("user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(100);
 
@@ -19,6 +24,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const sb = supabaseServer();
+  const userId = req.headers.get("x-user-id");
   let title: string | null = null;
   try {
     const body = await req.json();
@@ -31,8 +37,8 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await sb
     .from("conversations")
-    .insert({ title })
-    .select("id, title, created_at, updated_at")
+    .insert({ title, user_id: userId })
+    .select("id, title, user_id, created_at, updated_at")
     .single();
 
   if (error || !data) {
