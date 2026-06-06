@@ -32,14 +32,38 @@ export type ReacaoRegiao = {
   neutralidade_pct: number;
 };
 
+export type SegmentoReacao = {
+  rotulo: string;
+  aprovacao_pct: number;
+  neutralidade_pct: number;
+  rejeicao_pct: number;
+};
+
+export type ReacaoPorSegmento = {
+  genero?: SegmentoReacao[];
+  religiao?: SegmentoReacao[];
+  escolaridade?: SegmentoReacao[];
+  faixa_etaria?: SegmentoReacao[];
+  classe_social?: SegmentoReacao[];
+};
+
 export type FraseProblematica = {
   frase: string;
   motivo: string;
   cluster_alvo: string;
 };
 
+export type PontoForte = {
+  ponto: string;
+  motivo: string;
+  cluster_alvo: string;
+};
+
 export type AnalysisResult = {
+  nota?: { valor: number; max: number } | null;
   reacao_por_regiao: ReacaoRegiao[];
+  reacao_por_segmento?: ReacaoPorSegmento;
+  pontos_fortes?: PontoForte[];
   top_frases_problematicas: FraseProblematica[];
   sugestao_ajuste: {
     descricao: string;
@@ -76,9 +100,17 @@ export type Analysis = {
   completed_at: string | null;
 };
 
+export type User = {
+  id: string;
+  nome: string;
+  telefone: string;
+  role: "user" | "admin";
+};
+
 export type Conversation = {
   id: string;
   title: string | null;
+  user_id: string | null;
   created_at: string;
   updated_at: string;
 };

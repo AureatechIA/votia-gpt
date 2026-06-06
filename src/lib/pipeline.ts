@@ -10,6 +10,7 @@ import {
   buildTextUserMessage,
   buildHistoryBlock,
   sourceLabel,
+  ANALYSIS_TOOL,
   PROMPT_VERSION,
 } from "./prompt";
 import { ingestUrl } from "./ingest";
@@ -106,13 +107,6 @@ async function downloadImageAsBase64(storagePath: string): Promise<{
   const base64 = buf.toString("base64");
   const mediaType = file.type || "image/png";
   return { base64, mediaType };
-}
-
-function parseJsonFromText(text: string): AnalysisResult {
-  let raw = text.trim();
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (fence) raw = fence[1];
-  return JSON.parse(raw);
 }
 
 export async function runAnalysisPipeline(analysisId: string): Promise<void> {
@@ -220,11 +214,13 @@ export async function runAnalysisPipeline(analysisId: string): Promise<void> {
 ## Pergunta/contexto do usuário neste turno
 ${userCtx || "(não informado — apenas analisar a peça)"}
 
-Retorne o JSON.`;
+Use a tool submit_analysis pra responder.`;
       response = await anthropic.messages.create({
         model: MODEL,
-        max_tokens: 4000,
+        max_tokens: 8000,
         system: systemPrompt,
+        tools: [ANALYSIS_TOOL],
+        tool_choice: { type: "tool", name: ANALYSIS_TOOL.name },
         messages: [
           {
             role: "user",
@@ -256,19 +252,23 @@ Retorne o JSON.`;
       });
       response = await anthropic.messages.create({
         model: MODEL,
-        max_tokens: 4000,
+        max_tokens: 8000,
         system: systemPrompt,
+        tools: [ANALYSIS_TOOL],
+        tool_choice: { type: "tool", name: ANALYSIS_TOOL.name },
         messages: [{ role: "user", content: userMessage }],
       });
     }
 
-    const textBlock = response.content.find(
-      (b): b is Extract<typeof b, { type: "text" }> => b.type === "text"
+    const toolBlock = response.content.find(
+      (b): b is Extract<typeof b, { type: "tool_use" }> => b.type === "tool_use"
     );
-    if (!textBlock) {
-      throw new Error("No text response from Claude");
+    if (!toolBlock) {
+      throw new Error(
+        `Claude não usou a tool submit_analysis. stop_reason=${response.stop_reason}`
+      );
     }
-    const result: AnalysisResult = parseJsonFromText(textBlock.text);
+    const result = toolBlock.input as AnalysisResult;
 
     const analysis_log: AnalysisLog = {
       prompt_version: PROMPT_VERSION,
